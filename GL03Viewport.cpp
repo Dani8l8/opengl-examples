@@ -4,12 +4,26 @@
  * clipping-area and the viewport.
  */
 /* #include <windows.h>  // for MS Windows */
+// #include <GL/glext.h>
 #include <GL/glut.h>  // GLUT, include glu.h and gl.h
 
 /* Initialize OpenGL Graphics */
 void initGL() {
    // Set "clearing" or background color
    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black and opaque
+}
+
+void createSquare(float left, float bottom, float side_length) {
+  float right = left + side_length;
+  float top = bottom + side_length;
+  glColor3f(0.2f, 0.2f, 0.2f); // Dark Gray
+  glVertex2f(left, bottom);
+  glColor3f(1.0f, 1.0f, 1.0f); // White
+  glVertex2f(right, bottom);
+  glColor3f(0.2f, 0.2f, 0.2f); // Dark Gray
+  glVertex2f(right, top);
+  glColor3f(1.0f, 1.0f, 1.0f); // White
+  glVertex2f(left, top);
 }
 
 void display() {
@@ -29,15 +43,17 @@ void display() {
       glVertex2f(-0.1f,  0.0f);
       glVertex2f(-0.7f,  0.0f);
 
-      glColor3f(0.2f, 0.2f, 0.2f); // Dark Gray
-      glVertex2f(-0.9f, -0.7f);
-      glColor3f(1.0f, 1.0f, 1.0f); // White
-      glVertex2f(-0.5f, -0.7f);
-      glColor3f(0.2f, 0.2f, 0.2f); // Dark Gray
-      glVertex2f(-0.5f, -0.3f);
-      glColor3f(1.0f, 1.0f, 1.0f); // White
-      glVertex2f(-0.9f, -0.3f);
+      for (int a = 0; a <= 20; a++) {
+          createSquare(0.02f * a, 0.01f * a, 0.025f);
+      }
+
+      for (float i = 0; i <= 20; i++) {
+        createSquare(-0.01f * i, -0.01f * i, 0.025f);
+      }
+      
+      
    glEnd();
+   
 
    glBegin(GL_TRIANGLES);          // Each set of 3 vertices form a triangle
       glColor3f(0.0f, 0.0f, 1.0f); // Blue
