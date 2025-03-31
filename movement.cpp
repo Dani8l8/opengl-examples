@@ -41,10 +41,10 @@ double left = 0.1f;
 // drawSquare() function
 // ----------------------------------------------------------
 
-void drawSquare(float bottom, float left, float side) {
+void drawSquare(float bottom, float left, float side, float r, float g, float b) {
   
   glBegin(GL_QUADS);
-  glColor3f(1.0f, 1.0f, 0.0f); // Yellow
+  glColor3f(r,g,b); // Yellow
   glVertex2f(left, bottom);    // x, y
   glVertex2f(left + side, bottom);
   glVertex2f(left + side, bottom + side);
@@ -67,6 +67,19 @@ MovVec2f mov_vector;
 
 
 // ----------------------------------------------------------
+// Movement vector class
+// ----------------------------------------------------------
+
+class ColVec3f {
+public:
+  float r;
+  float g;
+  float b;
+};
+
+ColVec3f col_vector;
+
+// ----------------------------------------------------------
 // Pressed keys states
 // ----------------------------------------------------------
 
@@ -74,6 +87,7 @@ int keyUpPressed = 0;
 int keyDownPressed = 0;
 int keyLeftPressed = 0;
 int keyRightPressed = 0;
+int keyCtrlPressed = 0;
 
 // ----------------------------------------------------------
 // Movement function
@@ -89,6 +103,12 @@ void moveSquare(MovVec2f mov_vector, float speed) {
 // ----------------------------------------------------------
 void ProcessSpecialKeys( int key, int x, int y ) {
 
+  // Al hacer esto el cuadro solo cambia de color al presionar una tecla de direccion
+  // y no al solo presionar ctrl por lo que lo ideal seria que estuviera en la
+  // funcion de 'UnprocessSpecialKeys' pero al menos resuelve el problema en el cual
+  // el cuadro cambia de color de manera aleatoria durante el movimiento lento
+  if (glutGetModifiers() & GLUT_ACTIVE_CTRL) { keyCtrlPressed = 1; } else { keyCtrlPressed = 0; };
+  
   if (key == GLUT_KEY_RIGHT)
     keyRightPressed = 1;
  
@@ -100,6 +120,7 @@ void ProcessSpecialKeys( int key, int x, int y ) {
 
   else if (key == GLUT_KEY_DOWN)
     keyDownPressed = 1;
+    
 }
 
 void UnprocessSpecialKeys( int key, int x, int y ) {
@@ -115,6 +136,7 @@ void UnprocessSpecialKeys( int key, int x, int y ) {
 
   else if (key == GLUT_KEY_DOWN)
     keyDownPressed = 0;
+
 }
 
 
@@ -124,7 +146,7 @@ void UnprocessSpecialKeys( int key, int x, int y ) {
 void display(){
 
   mov_vector = { 0.0f, 0.0f };
-
+  
   if (keyUpPressed && keyDownPressed) { mov_vector.y = 0; }
   else if (keyUpPressed) { mov_vector.y = 1.0f; }
   else if (keyDownPressed) { mov_vector.y = -1.0f; }
@@ -135,16 +157,26 @@ void display(){
   else if (keyLeftPressed) { mov_vector.x = -1.0f; }
   else { mov_vector.x = 0; }
 
-  moveSquare(mov_vector, 0.02f);
+  float speed = 0.02f;
+  
+  col_vector = { 1.0f, 1.0f, 0.0f };
+
+  if (keyCtrlPressed) { speed = 0.005f; col_vector.g = 0.0f; } ;
+
+  moveSquare(mov_vector, speed);
 
   //  Clear screen and Z-buffer
   glClear(GL_COLOR_BUFFER_BIT);
 
   // Reset transformations
   glLoadIdentity();
+  
+  if (abs(bottom) >= 1.0f) { bottom *= -1; };
+  if (abs(left) >= 1.0f) { left *= -1; };
 
-  drawSquare(bottom,left, 0.05f);
+  drawSquare(bottom,left, 0.03f, col_vector.r, col_vector.g, col_vector.b);
    
+  
   glFlush();
   glutSwapBuffers();
   
