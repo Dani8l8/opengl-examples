@@ -29,22 +29,32 @@
 void display();
 void specialKeys();
 void drawSquare();
+
 class MovVec2f;
+class MovnewVec2f;
 
 // ----------------------------------------------------------
 // Global Variables
 // ----------------------------------------------------------
-double bottom=0.1f;
+double bottom = 0.1f;
 double left = 0.1f;
+
+//  ---------------------------------------------------------
+//  New variables and positions
+//  ---------------------------------------------------------
+
+double newBottom = 0.9f;
+double newLeft = 0.9f;
+
 
 // ----------------------------------------------------------
 // drawSquare() function
 // ----------------------------------------------------------
 
 void drawSquare(float bottom, float left, float side, float r, float g, float b) {
-  
+
   glBegin(GL_QUADS);
-  glColor3f(r,g,b); // Yellow
+  glColor3f(r, g, b); // Yellow
   glVertex2f(left, bottom);    // x, y
   glVertex2f(left + side, bottom);
   glVertex2f(left + side, bottom + side);
@@ -52,11 +62,17 @@ void drawSquare(float bottom, float left, float side, float r, float g, float b)
   glEnd();
 
 }
-
+//-----------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------
-// Movement vector class
+// Movement of the new vector class
 // ----------------------------------------------------------
-
+void moveNewSquare(float speed) {
+  newLeft -= speed; // Se desplaza en el sentido de positivos por eso el - por que el desplazamiento sera continuo
+  // Para que vuelva a aparecer en cuanto termine de llegar el limite
+  if (newLeft < -1.0f) {
+    newLeft = 1.0f; // VUELVE A APARECER
+  }
+}
 class MovVec2f {
 public:
   float x;
@@ -77,12 +93,10 @@ public:
   float b;
 };
 
-ColVec3f col_vector;
-
 // ----------------------------------------------------------
 // Pressed keys states
 // ----------------------------------------------------------
-
+ColVec3f col_vector;
 int keyUpPressed = 0;
 int keyDownPressed = 0;
 int keyLeftPressed = 0;
@@ -101,36 +115,37 @@ void moveSquare(MovVec2f mov_vector, float speed) {
 // ----------------------------------------------------------
 // specialKeys() Callback Function
 // ----------------------------------------------------------
-void ProcessSpecialKeys( int key, int x, int y ) {
+void ProcessSpecialKeys(int key, int x, int y) {
 
   // Al hacer esto el cuadro solo cambia de color al presionar una tecla de direccion
   // y no al solo presionar ctrl por lo que lo ideal seria que estuviera en la
   // funcion de 'UnprocessSpecialKeys' pero al menos resuelve el problema en el cual
   // el cuadro cambia de color de manera aleatoria durante el movimiento lento
-  if (glutGetModifiers() & GLUT_ACTIVE_CTRL) { keyCtrlPressed = 1; } else { keyCtrlPressed = 0; };
-  
+  if (glutGetModifiers() & GLUT_ACTIVE_CTRL) { keyCtrlPressed = 1; }
+  else { keyCtrlPressed = 0; };
+
   if (key == GLUT_KEY_RIGHT)
     keyRightPressed = 1;
- 
+
   else if (key == GLUT_KEY_LEFT)
     keyLeftPressed = 1;
- 
+
   else if (key == GLUT_KEY_UP)
     keyUpPressed = 1;
 
   else if (key == GLUT_KEY_DOWN)
     keyDownPressed = 1;
-    
+
 }
 
-void UnprocessSpecialKeys( int key, int x, int y ) {
+void UnprocessSpecialKeys(int key, int x, int y) {
 
   if (key == GLUT_KEY_RIGHT)
     keyRightPressed = 0;
- 
+
   else if (key == GLUT_KEY_LEFT)
     keyLeftPressed = 0;
- 
+
   else if (key == GLUT_KEY_UP)
     keyUpPressed = 0;
 
@@ -143,10 +158,14 @@ void UnprocessSpecialKeys( int key, int x, int y ) {
 // ----------------------------------------------------------
 // display() Callback function
 // ----------------------------------------------------------
-void display(){
+void display() {
+  //  Clear screen and Z-buffer
+  glClear(GL_COLOR_BUFFER_BIT);
 
+  // Reset transformations
+  glLoadIdentity();
   mov_vector = { 0.0f, 0.0f };
-  
+
   if (keyUpPressed && keyDownPressed) { mov_vector.y = 0; }
   else if (keyUpPressed) { mov_vector.y = 1.0f; }
   else if (keyDownPressed) { mov_vector.y = -1.0f; }
@@ -158,28 +177,31 @@ void display(){
   else { mov_vector.x = 0; }
 
   float speed = 0.02f;
-  
+
   col_vector = { 1.0f, 1.0f, 0.0f };
 
-  if (keyCtrlPressed) { speed = 0.005f; col_vector.g = 0.0f; } ;
+  if (keyCtrlPressed) { speed = 0.005f; col_vector.g = 0.0f; };
 
   moveSquare(mov_vector, speed);
 
-  //  Clear screen and Z-buffer
-  glClear(GL_COLOR_BUFFER_BIT);
+  // INCLUIMOS AQUI POR EL DISPLAY()
 
-  // Reset transformations
-  glLoadIdentity();
-  
+
+  moveNewSquare(0.01f);
+  drawSquare(newBottom, newLeft, 0.05f, 0.0f, 1.0f, 0.0f);
+  drawSquare(bottom, left, 0.03f, col_vector.r, col_vector.g, col_vector.b);
+
+
+
   if (abs(bottom) >= 1.0f) { bottom *= -1; };
   if (abs(left) >= 1.0f) { left *= -1; };
 
-  drawSquare(bottom,left, 0.03f, col_vector.r, col_vector.g, col_vector.b);
-   
-  
+  drawSquare(bottom, left, 0.03f, col_vector.r, col_vector.g, col_vector.b);
+
+
   glFlush();
   glutSwapBuffers();
-  
+
   //  Request display update
   glutPostRedisplay();
 
@@ -189,14 +211,14 @@ void display(){
 // ----------------------------------------------------------
 // main() function
 // ----------------------------------------------------------
-int main(int argc, char* argv[]){
- 
+int main(int argc, char* argv[]) {
+
   //  Initialize GLUT and process user parameters
-  glutInit(&argc,argv);
- 
+  glutInit(&argc, argv);
+
   //  Request double buffered true color window with Z-buffer
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB );
- 
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+
   // Create window
   glutCreateWindow("Movement Test");
 
@@ -207,8 +229,8 @@ int main(int argc, char* argv[]){
 
   //  Pass control to GLUT for events
   glutMainLoop();
- 
+
   //  Return to OS
   return 0;
- 
+
 }
