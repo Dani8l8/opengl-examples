@@ -1,1 +1,6 @@
 /bin/
+Input.txt
+Output.txt
+*.exe
+/mingw32/
+/.vscode/
